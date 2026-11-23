@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ลอยกระทงอธิษฐานรัก — Loy Krathong Interactive Card</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Sriracha&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #070919;
+      font-family: 'Noto Sans Thai', sans-serif;
+      color: #fff;
+    }
+
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    canvas#scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Sound Control Top Center */
+    .top-controls {
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(18, 25, 56, 0.72);
+      border: 1.5px solid rgba(255, 224, 150, 0.35);
+      backdrop-filter: blur(8px);
+      color: #ffe8a3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: rgba(32, 43, 92, 0.85);
+      transform: scale(1.06);
+      box-shadow: 0 0 18px rgba(255, 200, 90, 0.35);
+    }
+
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Top Right Customize Button */
+    .top-right-controls {
+      position: absolute;
+      top: 22px;
+      right: 18px;
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+    }
+
+    .pill-mini-btn {
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(18, 25, 56, 0.72);
+      border: 1.5px solid rgba(255, 224, 150, 0.35);
+      backdrop-filter: blur(8px);
+      color: #fff3d1;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .pill-mini-btn:hover {
+      background: rgba(34, 46, 98, 0.88);
+      border-color: rgba(255, 215, 110, 0.7);
+    }
+
+    /* Recipient Header Badge */
+    .header-title {
+      position: absolute;
+      top: 76px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      text-align: center;
+      pointer-events: none;
+      width: 90%;
+      max-width: 480px;
+    }
+
+    .header-title h1 {
+      font-family: 'Sriracha', cursive;
+      font-size: clamp(20px, 4.5vw, 28px);
+      color: #ffe8a3;
+      text-shadow: 0 2px 12px rgba(255, 180, 50, 0.55), 0 2px 4px rgba(0, 0, 0, 0.8);
+      letter-spacing: 0.5px;
+    }
+
+    .header-title p {
+      font-size: 13px;
+      color: rgba(255, 245, 220, 0.85);
+      margin-top: 2px;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+    }
+
+    /* Main Action Pill Button (matching reference image) */
+    .action-container {
+      position: absolute;
+      bottom: 34px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 92%;
+      max-width: 400px;
+    }
+
+    .main-pill-btn {
+      padding: 13px 28px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(24, 34, 78, 0.92) 0%, rgba(12, 18, 46, 0.96) 100%);
+      border: 1.5px solid rgba(155, 185, 255, 0.55);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 0 18px rgba(100, 145, 255, 0.28);
+      color: #ffffff;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      animation: pulseGlow 2.6s infinite ease-in-out;
+    }
+
+    .main-pill-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: #ffd875;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 0 24px rgba(255, 195, 75, 0.45);
+    }
+
+    .main-pill-btn:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .main-pill-btn.lit-mode {
+      background: linear-gradient(180deg, rgba(185, 110, 20, 0.92) 0%, rgba(120, 58, 10, 0.96) 100%);
+      border-color: #ffe082;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), 0 0 26px rgba(255, 190, 60, 0.55);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), 0 0 14px rgba(130, 175, 255, 0.25); }
+      50% { box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 210, 110, 0.42); }
+    }
+
+    .hint-text {
+      font-size: 12px;
+      color: rgba(235, 240, 255, 0.78);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+      text-align: center;
+    }
+
+    /* Floating Love Card Overlay after floating */
+    .love-card-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -45%) scale(0.9);
+      z-index: 25;
+      width: 88%;
+      max-width: 370px;
+      background: linear-gradient(145deg, rgba(22, 28, 66, 0.88), rgba(12, 16, 40, 0.94));
+      border: 1.5px solid rgba(255, 215, 120, 0.55);
+      border-radius: 22px;
+      padding: 24px 22px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 32px rgba(255, 185, 65, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .love-card-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .love-card-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(255, 200, 85, 0.16);
+      border: 1px solid rgba(255, 210, 110, 0.4);
+      color: #ffd97d;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .love-card-to {
+      font-family: 'Sriracha', cursive;
+      font-size: 22px;
+      color: #ffe9a8;
+      margin-bottom: 10px;
+    }
+
+    .love-card-msg {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #f6f7ff;
+      margin-bottom: 16px;
+      white-space: pre-line;
+    }
+
+    .love-card-from {
+      font-size: 13px;
+      color: #ffd57e;
+      font-weight: 500;
+      margin-bottom: 18px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .card-btn {
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid rgba(255, 220, 140, 0.45);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .card-btn.primary {
+      background: linear-gradient(135deg, #f6b93b, #e58e26);
+      color: #1a1205;
+      border: none;
+      font-weight: 600;
+    }
+
+    .card-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    /* Modal for Customizing Wish */
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      background: rgba(5, 7, 20, 0.76);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 390px;
+      background: #13193b;
+      border: 1.5px solid rgba(255, 215, 120, 0.45);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+    }
+
+    .modal-box h2 {
+      font-family: 'Sriracha', cursive;
+      font-size: 22px;
+      color: #ffe49e;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12.5px;
+      color: #cbd5ff;
+      margin-bottom: 5px;
+    }
+
+    .form-group input, .form-group textarea {
+      width: 100%;
+      background: rgba(8, 12, 32, 0.8);
+      border: 1px solid rgba(160, 185, 255, 0.35);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: #fff;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 14px;
+      outline: none;
+      user-select: text;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: #ffd573;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .chip {
+      font-size: 11.5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 215, 115, 0.14);
+      border: 1px solid rgba(255, 215, 115, 0.35);
+      color: #ffe7ad;
+      cursor: pointer;
+    }
+
+    .chip:hover {
+      background: rgba(255, 215, 115, 0.28);
+    }
+
+    .krathong-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .k-option {
+      padding: 8px 6px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.05);
+      text-align: center;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .k-option.active {
+      border-color: #ffd573;
+      background: rgba(255, 200, 80, 0.18);
+      color: #ffe8a8;
+      font-weight: 600;
+    }
+
+    .toast {
+      position: absolute;
+      top: 78px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      z-index: 50;
+      background: rgba(255, 215, 115, 0.95);
+      color: #1c1303;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <canvas id="scene"></canvas>
+
+    <!-- Top Center Audio Toggle -->
+    <div class="top-controls">
+      <button id="audioToggleBtn" class="icon-btn" title="เปิด/ปิดเสียงเพลงบรรเลง" aria-label="เปิด/ปิดเสียง">
+        <svg id="iconSoundOff" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+        <svg id="iconSoundOn" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Top Right Customize Button -->
+    <div class="top-right-controls">
+      <button id="openWishBtn" class="pill-mini-btn">
+        <span>✍️</span>
+        <span>เขียนคำอธิษฐาน</span>
+      </button>
+    </div>
+
+    <!-- Header Text -->
+    <div class="header-title">
+      <h1 id="displayHeadline">สุขสันต์วันลอยกระทง 🌕</h1>
+      <p id="displaySubline">ส่งกระทงอธิษฐานความรักไปพร้อมกับสายน้ำ</p>
+    </div>
+
+    <!-- Bottom Action Pill Button -->
+    <div class="action-container" id="actionContainer">
+      <button id="mainActionBtn" class="main-pill-btn">
+        <span id="btnIcon">🕯️</span>
+        <span id="btnLabel">แตะเทียนให้ความรักสว่างขึ้น</span>
+      </button>
+      <div class="hint-text" id="hintText">แตะที่เทียนบนกระทง หรือกดปุ่มด้านบนเพื่อจุดเทียน</div>
+    </div>
+
+    <!-- Floating Love Card Overlay -->
+    <div class="love-card-overlay" id="loveCardOverlay">
+      <div class="love-card-badge">✨ คำอธิษฐานลอยสู่สายน้ำแล้ว ✨</div>
+      <div class="love-card-to" id="cardToText">ถึง... คนพิเศษของฉัน</div>
+      <div class="love-card-msg" id="cardMsgText">ขอให้สายน้ำพัดพาความสุข ความสมหวัง
+และให้ความรักของเราสว่างไสวเหมือนแสงเทียนในคืนวันเพ็ญ</div>
+      <div class="love-card-from" id="cardFromText">จากคนที่คิดถึงเสมอ 💛</div>
+      <div class="card-actions">
+        <button class="card-btn" id="replayBtn">ลอยอีกครั้ง</button>
+        <button class="card-btn primary" id="shareLinkBtn">คัดลอกลิงก์ส่งให้คนพิเศษ</button>
+      </div>
+    </div>
+
+    <!-- Customize Modal -->
+    <div class="modal-backdrop" id="wishModal">
+      <div class="modal-box">
+        <h2>🪷 ปรับแต่งกระทง & คำอธิษฐาน</h2>
+        <div class="form-group">
+          <label>เลือกแบบกระทง</label>
+          <div class="krathong-selector" id="krathongSelector">
+            <div class="k-option active" data-style="lotus">🌸 บัวกลีบม่วง</div>
+            <div class="k-option" data-style="gold">👑 ใบตองทอง</div>
+            <div class="k-option" data-style="rose">🌹 กุหลาบชมพู</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>ส่งถึงใคร (ชื่อคนพิเศษ)</label>
+          <input type="text" id="inputTo" placeholder="เช่น น้องมินท์, คนที่แอบชอบ..." maxlength="35" />
+        </div>
+        <div class="form-group">
+          <label>ข้อความในใจ / คำอธิษฐาน</label>
+          <textarea id="inputMsg" rows="3" maxlength="160" placeholder="พิมพ์ข้อความบอกรักหรือคำอธิษฐาน..."></textarea>
+          <div class="preset-chips">
+            <span class="chip" data-preset="ขอให้คืนลอยกระทงนี้ เป็นจุดเริ่มต้นเรื่องราวดีๆ ของเรานะ 💛">💕 จีบ/แอบชอบ</span>
+            <span class="chip" data-preset="ไม่ว่าจะปีไหนๆ ก็อยากมาลอยกระทงข้างๆ เธอตลอดไปเลย 🌕">💑 คู่รัก</span>
+            <span class="chip" data-preset="ขอให้สายน้ำพัดพาความทุกข์ออกไป และนำพาความสุขสมหวังมาให้เสมอ ✨">🙏 ขอพร</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>ลงชื่อผู้ส่ง</label>
+          <input type="text" id="inputFrom" placeholder="ชื่อของคุณ" maxlength="30" />
+        </div>
+        <div class="card-actions" style="margin-top: 16px;">
+          <button class="card-btn" id="closeModalBtn">ยกเลิก</button>
+          <button class="card-btn primary" id="saveWishBtn">บันทึกคำอธิษฐาน</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">คัดลอกลิงก์เรียบร้อย! ส่งให้คนที่ชอบได้เลย 💛</div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. STATE & URL PARAMETERS
+    // ==========================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const state = {
+      step: 'unlit', // 'unlit' | 'lit' | 'floating' | 'released'
+      krathongStyle: urlParams.get('style') || 'lotus',
+      to: urlParams.get('to') || 'คนพิเศษของฉัน',
+      msg: urlParams.get('msg') || 'ขอให้สายน้ำพัดพาความสุข ความสมหวัง\nและให้ความรักของเราสว่างไสวเหมือนแสงเทียนในคืนวันเพ็ญ',
+      from: urlParams.get('from') || 'จากคนที่คิดถึงเสมอ 💛',
+      flameIntensity: 0,
+      floatProgress: 0, // 0 = on dock, 0..1 = moving into river
+      dragOffsetY: 0,
+      isDragging: false,
+      dragStartY: 0,
+      audioPlaying: false
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('scene');
+    const ctx = canvas.getContext('2d');
+    const mainActionBtn = document.getElementById('mainActionBtn');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnLabel = document.getElementById('btnLabel');
+    const hintText = document.getElementById('hintText');
+    const actionContainer = document.getElementById('actionContainer');
+    const loveCardOverlay = document.getElementById('loveCardOverlay');
+    const wishModal = document.getElementById('wishModal');
+    const toast = document.getElementById('toast');
+
+    function syncTextUI() {
+      document.getElementById('displayHeadline').textContent =
+        state.to && state.to !== 'คนพิเศษของฉัน'
+          ? `ลอยกระทงอธิษฐานถึง ${state.to} 🌕`
+          : 'สุขสันต์วันลอยกระทง 🌕';
+      document.getElementById('cardToText').textContent = `ถึง... ${state.to}`;
+      document.getElementById('cardMsgText').textContent = state.msg;
+      document.getElementById('cardFromText').textContent = state.from;
+
+      document.getElementById('inputTo').value = state.to;
+      document.getElementById('inputMsg').value = state.msg;
+      document.getElementById('inputFrom').value = state.from;
+
+      document.querySelectorAll('.k-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.style === state.krathongStyle);
+      });
+    }
+    syncTextUI();
+
+    // ==========================================
+    // 2. WEB AUDIO API (GENTLE THAI KHIM & WATER)
+    // ==========================================
+    let audioCtx = null;
+    let musicInterval = null;
+    let waterNode = null;
+
+    function startAmbientMusic() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      // Soft night river murmur (filtered pink/white noise)
+      const bufferSize = 2 * audioCtx.sampleRate;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99765 * b0 + white * 0.099046;
+        b1 = 0.96300 * b1 + white * 0.2965164;
+        b2 = 0.57000 * b2 + white * 1.0526913;
+        output[i] = (b0 + b1 + b2 + white * 0.1848) * 0.015;
+      }
+      waterNode = audioCtx.createBufferSource();
+      waterNode.buffer = noiseBuffer;
+      waterNode.loop = true;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 320;
+
+      waterNode.connect(filter);
+      filter.connect(audioCtx.destination);
+      waterNode.start();
+
+      // Thai Pentatonic scale frequencies (C4, D4, E4, G4, A4, C5, D5, E5, G5)
+      const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
+      const melodyPattern = [5, 4, 3, 4, 5, 7, 5, 4, 3, 2, 0, 2, 3, 4, 3, 2];
+      let stepIdx = 0;
+
+      function pluckKhim(freq) {
+        if (!audioCtx || !state.audioPlaying) return;
+        const now = audioCtx.currentTime;
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc1.type = 'triangle';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(freq, now);
+        osc2.frequency.setValueAtTime(freq * 2, now); // harmonic overtone
+
+        const subGain = audioCtx.createGain();
+        subGain.gain.setValueAtTime(0.18, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(0.075, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.4);
+
+        osc1.connect(gain);
+        osc2.connect(subGain);
+        subGain.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 2.5);
+        osc2.stop(now + 2.5);
+      }
+
+      pluckKhim(notes[melodyPattern[0]]);
+      musicInterval = setInterval(() => {
+        stepIdx = (stepIdx + 1) % melodyPattern.length;
+        pluckKhim(notes[melodyPattern[stepIdx]]);
+      }, 950);
+    }
+
+    function stopAmbientMusic() {
+      if (musicInterval) {
+        clearInterval(musicInterval);
+        musicInterval = null;
+      }
+      if (waterNode) {
+        try { waterNode.stop(); } catch (e) {}
+        waterNode = null;
+      }
+    }
+
+    document.getElementById('audioToggleBtn').addEventListener('click', () => {
+      state.audioPlaying = !state.audioPlaying;
+      document.getElementById('iconSoundOn').style.display = state.audioPlaying ? 'block' : 'none';
+      document.getElementById('iconSoundOff').style.display = state.audioPlaying ? 'none' : 'block';
+      if (state.audioPlaying) {
+        startAmbientMusic();
+      } else {
+        stopAmbientMusic();
+      }
+    });
+
+    // ==========================================
+    // 3. CANVAS SCENE SETUP & ENTITIES
+    // ==========================================
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+
+    const stars = [];
+    const skyLanterns = [];
+    const bgKrathongs = [];
+    const fireworks = [];
+    const ripples = [];
+    const sparkles = [];
+
+    function resizeCanvas() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function initEntities() {
+      stars.length = 0;
+      for (let i = 0; i < 65; i++) {
+        stars.push({
+          x: Math.random(),
+          y: Math.random() * 0.42,
+          r: Math.random() * 1.5 + 0.5,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.02 + Math.random() * 0.03
+        });
+      }
+
+      skyLanterns.length = 0;
+      for (let i = 0; i < 14; i++) {
+        skyLanterns.push({
+          x: Math.random(),
+          y: 0.05 + Math.random() * 0.36,
+          size: 0.45 + Math.random() * 0.75,
+          speedY: 0.00012 + Math.random() * 0.00018,
+          driftPhase: Math.random() * Math.PI * 2
+        });
+      }
+
+      bgKrathongs.length = 0;
+      for (let i = 0; i < 42; i++) {
+        const depth = Math.random(); // 0 = far horizon, 1 = closer
+        bgKrathongs.push({
+          x: Math.random(),
+          depth: depth,
+          speedX: (0.00012 + depth * 0.00028) * (Math.random() > 0.3 ? 1 : -0.6),
+          bobPhase: Math.random() * Math.PI * 2,
+          hue: Math.random() > 0.5 ? 45 : 330
+        });
+      }
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    initEntities();
+
+    // ==========================================
+    // 4. DRAWING HELPERS (MATCHING REFERENCE)
+    // ==========================================
+    function drawSkyAndMoon(time) {
+      const horizonY = height * 0.47;
+
+      // Deep indigo night sky gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+      skyGrad.addColorStop(0, '#050716');
+      skyGrad.addColorStop(0.55, '#0b102d');
+      skyGrad.addColorStop(1, '#161f4d');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, horizonY + 2);
+
+      // Twinkling stars
+      stars.forEach(s => {
+        const alpha = 0.35 + 0.65 * Math.abs(Math.sin(time * s.speed + s.phase));
+        ctx.fillStyle = `rgba(255, 250, 230, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(s.x * width, s.y * height, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Full Moon (top-left like the photo)
+      const moonX = width * 0.16;
+      const moonY = height * 0.16;
+      const moonR = Math.min(width, height) * 0.036;
+
+      const moonGlow = ctx.createRadialGradient(moonX, moonY, moonR * 0.4, moonX, moonY, moonR * 4.5);
+      moonGlow.addColorStop(0, 'rgba(255, 232, 165, 0.45)');
+      moonGlow.addColorStop(0.4, 'rgba(255, 210, 120, 0.12)');
+      moonGlow.addColorStop(1, 'rgba(255, 210, 120, 0)');
+      ctx.fillStyle = moonGlow;
+      ctx.beginPath();
+      ctx.arc(moonX, moonY, moonR * 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffe599';
+      ctx.beginPath();
+      ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Sky Lanterns (โคมลอย)
+      skyLanterns.forEach(l => {
+        l.y -= l.speedY;
+        if (l.y < -0.05) {
+          l.y = 0.43;
+          l.x = Math.random();
+        }
+        const lx = l.x * width + Math.sin(time * 0.001 + l.driftPhase) * 8;
+        const ly = l.y * height;
+        const w = 7 * l.size;
+        const h = 10 * l.size;
+
+        const glow = ctx.createRadialGradient(lx, ly, 1, lx, ly, w * 2.4);
+        glow.addColorStop(0, 'rgba(255, 200, 95, 0.55)');
+        glow.addColorStop(1, 'rgba(255, 160, 40, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(lx, ly, w * 2.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffcf70';
+        ctx.beginPath();
+        ctx.roundRect(lx - w / 2, ly - h / 2, w, h, 2);
+        ctx.fill();
+      });
+
+      // Subtle Fireworks on left horizon
+      if (Math.random() < 0.015 && fireworks.length < 3) {
+        fireworks.push({
+          x: width * (0.12 + Math.random() * 0.25),
+          y: height * (0.28 + Math.random() * 0.12),
+          age: 0,
+          maxAge: 55,
+          color: Math.random() > 0.5 ? '#ffd875' : '#9be7ff'
+        });
+      }
+
+      for (let i = fireworks.length - 1; i >= 0; i--) {
+        const fw = fireworks[i];
+        fw.age++;
+        const progress = fw.age / fw.maxAge;
+        const alpha = 1 - progress;
+        const rays = 14;
+        ctx.strokeStyle = fw.color;
+        ctx.lineWidth = 1.3;
+        ctx.globalAlpha = alpha * 0.85;
+        for (let r = 0; r < rays; r++) {
+          const angle = (r / rays) * Math.PI * 2;
+          const innerR = progress * 10;
+          const outerR = progress * 34;
+          ctx.beginPath();
+          ctx.moveTo(fw.x + Math.cos(angle) * innerR, fw.y + Math.sin(angle) * innerR);
+          ctx.lineTo(fw.x + Math.cos(angle) * outerR, fw.y + Math.sin(angle) * outerR);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        if (fw.age >= fw.maxAge) fireworks.splice(i, 1);
+      }
+    }
+
+    function drawOppositeBank(time) {
+      const horizonY = height * 0.47;
+
+      // Distant dark treeline silhouette
+      ctx.fillStyle = '#090d24';
+      ctx.fillRect(0, horizonY - 14, width, 16);
+
+      // Ferris wheel silhouette (left side)
+      const fwX = width * 0.14;
+      const fwY = horizonY - 26;
+      const fwR = 22;
+      ctx.strokeStyle = 'rgba(180, 210, 255, 0.35)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(fwX, fwY, fwR, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 8; i++) {
+        const a = time * 0.0006 + (i * Math.PI) / 4;
+        ctx.beginPath();
+        ctx.moveTo(fwX, fwY);
+        ctx.lineTo(fwX + Math.cos(a) * fwR, fwY + Math.sin(a) * fwR);
+        ctx.stroke();
+      }
+
+      // Traditional Thai Riverside Houses (Left to Center)
+      const houseCount = Math.max(4, Math.floor((width * 0.52) / 72));
+      for (let i = 0; i < houseCount; i++) {
+        const hx = 14 + i * ((width * 0.5) / houseCount);
+        const hy = horizonY - 18;
+        const hw = 46;
+        const hh = 18;
+
+        // House body
+        ctx.fillStyle = '#141936';
+        ctx.fillRect(hx, hy, hw, hh);
+
+        // Gable Thai roof
+        ctx.fillStyle = '#1f264d';
+        ctx.beginPath();
+        ctx.moveTo(hx - 6, hy + 2);
+        ctx.lineTo(hx + hw / 2, hy - 12);
+        ctx.lineTo(hx + hw + 6, hy + 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Warm lit windows
+        ctx.fillStyle = '#ffd670';
+        for (let w = 0; w < 3; w++) {
+          ctx.fillRect(hx + 8 + w * 12, hy + 5, 5, 6);
+        }
+      }
+
+      // Golden Illuminated Temple Prangs / Chedis (Right Side — iconic Wat Arun style)
+      const templeBaseX = width * 0.72;
+      drawGoldenPrang(templeBaseX - width * 0.09, horizonY, 22, 48, time);
+      drawGoldenPrang(templeBaseX, horizonY, 34, 86, time); // Main tall Prang
+      drawGoldenPrang(templeBaseX + width * 0.085, horizonY, 20, 44, time);
+
+      // Right side riverside pavilions
+      for (let i = 0; i < 3; i++) {
+        const px = width * 0.85 + i * 44;
+        if (px > width - 10) break;
+        ctx.fillStyle = '#141936';
+        ctx.fillRect(px, horizonY - 14, 34, 14);
+        ctx.fillStyle = '#ffd670';
+        ctx.fillRect(px + 6, horizonY - 9, 5, 5);
+        ctx.fillRect(px + 18, horizonY - 9, 5, 5);
+      }
+    }
+
+    function drawGoldenPrang(cx, baseY, baseW, totalH, time) {
+      // Ambient golden halo behind temple
+      const halo = ctx.createRadialGradient(cx, baseY - totalH * 0.45, 4, cx, baseY - totalH * 0.45, totalH * 1.15);
+      halo.addColorStop(0, 'rgba(255, 195, 65, 0.36)');
+      halo.addColorStop(0.6, 'rgba(255, 160, 35, 0.1)');
+      halo.addColorStop(1, 'rgba(255, 160, 35, 0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(cx, baseY - totalH * 0.45, totalH * 1.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tiered Prang silhouette
+      const tiers = 7;
+      for (let t = 0; t < tiers; t++) {
+        const ratio = t / tiers;
+        const nextRatio = (t + 1) / tiers;
+        const y1 = baseY - ratio * (totalH * 0.75);
+        const y2 = baseY - nextRatio * (totalH * 0.75);
+        const w1 = baseW * (1 - ratio * 0.68);
+        const w2 = baseW * (1 - nextRatio * 0.74);
+
+        const grad = ctx.createLinearGradient(cx - w1, y1, cx + w1, y2);
+        grad.addColorStop(0, '#c97a16');
+        grad.addColorStop(0.5, '#ffcf56');
+        grad.addColorStop(1, '#b8680e');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(cx - w1, y1);
+        ctx.lineTo(cx - w2, y2);
+        ctx.lineTo(cx + w2, y2);
+        ctx.lineTo(cx + w1, y1);
+        ctx.closePath();
+        ctx.fill();
+
+        // Horizontal tier rim highlight
+        ctx.fillStyle = '#ffe999';
+        ctx.fillRect(cx - w2 - 1, y2, (w2 + 1) * 2, 1.5);
+      }
+
+      // Spire tip
+      ctx.strokeStyle = '#ffe896';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, baseY - totalH * 0.75);
+      ctx.lineTo(cx, baseY - totalH);
+      ctx.stroke();
+
+      // Golden water reflection shimmer directly beneath temple
+      const reflH = totalH * 0.75;
+      const reflGrad = ctx.createLinearGradient(0, baseY, 0, baseY + reflH);
+      reflGrad.addColorStop(0, 'rgba(255, 195, 65, 0.45)');
+      reflGrad.addColorStop(1, 'rgba(255, 160, 30, 0)');
+      ctx.fillStyle = reflGrad;
+      for (let s = 0; s < 10; s++) {
+        const sy = baseY + (s / 10) * reflH;
+        const sw = baseW * (1 - s / 12) + Math.sin(time * 0.004 + s) * 4;
+        ctx.fillRect(cx - sw, sy, sw * 2, 2.5);
+      }
+    }
+
+    function drawRiverAndReflections(time) {
+      const horizonY = height * 0.47;
+
+      // Deep dark water gradient
+      const waterGrad = ctx.createLinearGradient(0, horizonY, 0, height);
+      waterGrad.addColorStop(0, '#090e26');
+      waterGrad.addColorStop(0.35, '#06091b');
+      waterGrad.addColorStop(1, '#030510');
+      ctx.fillStyle = waterGrad;
+      ctx.fillRect(0, horizonY, width, height - horizonY);
+
+      // Gentle horizontal water shimmer lines
+      ctx.strokeStyle = 'rgba(130, 165, 255, 0.07)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 24; i++) {
+        const y = horizonY + ((i / 24) ** 1.4) * (height - horizonY);
+        const shift = Math.sin(time * 0.0015 + i * 1.3) * 18;
+        ctx.beginPath();
+        ctx.moveTo(width * 0.05 + shift, y);
+        ctx.lineTo(width * 0.95 - shift, y);
+        ctx.stroke();
+      }
+
+      // Background floating Krathongs in the river
+      bgKrathongs.sort((a, b) => a.depth - b.depth);
+      bgKrathongs.forEach(k => {
+        k.x += k.speedX;
+        if (k.x > 1.05) k.x = -0.05;
+        if (k.x < -0.05) k.x = 1.05;
+
+        const ky = horizonY + 8 + (k.depth ** 1.35) * (height - horizonY - 30);
+        const kx = k.x * width;
+        const scale = 0.25 + k.depth * 0.65;
+        const bob = Math.sin(time * 0.003 + k.bobPhase) * 1.8 * scale;
+
+        // Water reflection glow
+        const glowR = 14 * scale;
+        const glow = ctx.createRadialGradient(kx, ky + bob, 1, kx, ky + bob, glowR);
+        glow.addColorStop(0, 'rgba(255, 205, 90, 0.55)');
+        glow.addColorStop(1, 'rgba(255, 175, 45, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(kx, ky + bob, glowR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Mini krathong body
+        ctx.fillStyle = k.hue === 45 ? '#9dc164' : '#d689b8';
+        ctx.beginPath();
+        ctx.ellipse(kx, ky + bob + 2 * scale, 6 * scale, 2.5 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Candle light dot
+        ctx.fillStyle = '#fff3b0';
+        ctx.beginPath();
+        ctx.arc(kx, ky + bob - 2 * scale, 1.8 * scale, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Interactive water ripples
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const rp = ripples[i];
+        rp.r += 1.1;
+        rp.alpha -= 0.015;
+        if (rp.alpha <= 0) {
+          ripples.splice(i, 1);
+          continue;
+        }
+        ctx.strokeStyle = `rgba(255, 225, 150, ${rp.alpha})`;
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.ellipse(rp.x, rp.y, rp.r, rp.r * 0.35, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    function drawWoodenPier() {
+      // Bottom-left wooden dock perspective matching the reference photo
+      const dockTopY = height * 0.72;
+      const dockBottomY = height;
+      const topRightX = Math.min(width * 0.62, 430);
+      const bottomRightX = Math.min(width * 0.88, 620);
+
+      // Pier shadow in water
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.beginPath();
+      ctx.moveTo(0, dockTopY + 10);
+      ctx.lineTo(topRightX + 10, dockTopY + 10);
+      ctx.lineTo(bottomRightX + 14, dockBottomY);
+      ctx.lineTo(0, dockBottomY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Main wooden surface
+      const woodGrad = ctx.createLinearGradient(0, dockTopY, 0, dockBottomY);
+      woodGrad.addColorStop(0, '#5a3324');
+      woodGrad.addColorStop(0.5, '#47261a');
+      woodGrad.addColorStop(1, '#331910');
+
+      ctx.fillStyle = woodGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, dockTopY);
+      ctx.lineTo(topRightX, dockTopY);
+      ctx.lineTo(bottomRightX, dockBottomY);
+      ctx.lineTo(0, dockBottomY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Pier edge trim
+      ctx.strokeStyle = '#754431';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, dockTopY);
+      ctx.lineTo(topRightX, dockTopY);
+      ctx.lineTo(bottomRightX, dockBottomY);
+      ctx.stroke();
+
+      // Individual wooden planks
+      const planks = 7;
+      ctx.strokeStyle = '#26110a';
+      ctx.lineWidth = 2;
+      for (let i = 1; i < planks; i++) {
+        const t = i / planks;
+        const py = dockTopY + t * (dockBottomY - dockTopY);
+        const pxRight = topRightX + t * (bottomRightX - topRightX);
+        ctx.beginPath();
+        ctx.moveTo(0, py);
+        ctx.lineTo(pxRight, py);
+        ctx.stroke();
+      }
+    }
+
+    function getKrathongPosition() {
+      const startX = Math.min(width * 0.28, 210);
+      const startY = height * 0.77 + state.dragOffsetY;
+
+      const endX = width * 0.56;
+      const endY = height * 0.52;
+
+      const t = state.floatProgress;
+      // Smooth ease-out curve into river
+      const ease = 1 - Math.pow(1 - t, 2.2);
+      const x = startX + (endX - startX) * ease + Math.sin(t * Math.PI * 2) * 14 * t;
+      const y = startY + (endY - startY) * ease;
+      const scale = 1 - 0.68 * ease;
+
+      return { x, y, scale };
+    }
+
+    function drawHeroKrathong(time) {
+      const { x, y, scale } = getKrathongPosition();
+      const bobY = state.step === 'floating' || state.step === 'released'
+        ? Math.sin(time * 0.004) * 3.5 * scale
+        : 0;
+
+      ctx.save();
+      ctx.translate(x, y + bobY);
+      ctx.scale(scale, scale);
+
+      // Warm candlelight aura on dock/water
+      if (state.flameIntensity > 0.01) {
+        const auraR = 135 * state.flameIntensity;
+        const aura = ctx.createRadialGradient(0, -18, 5, 0, -18, auraR);
+        aura.addColorStop(0, `rgba(255, 215, 100, ${0.42 * state.flameIntensity})`);
+        aura.addColorStop(0.5, `rgba(255, 175, 50, ${0.16 * state.flameIntensity})`);
+        aura.addColorStop(1, 'rgba(255, 160, 40, 0)');
+        ctx.fillStyle = aura;
+        ctx.beginPath();
+        ctx.arc(0, -18, auraR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Contact shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.beginPath();
+      ctx.ellipse(0, 18, 62, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Palette based on selected style
+      const palettes = {
+        lotus: {
+          baseTop: '#c5e078',
+          baseSide: '#789c3a',
+          outerPetal: '#8f478e',
+          innerPetal: '#e598d8',
+          centerFlower: '#ffd659'
+        },
+        gold: {
+          baseTop: '#f5d77f',
+          baseSide: '#b88928',
+          outerPetal: '#4b7a38',
+          innerPetal: '#f7c948',
+          centerFlower: '#fff1b8'
+        },
+        rose: {
+          baseTop: '#b7db79',
+          baseSide: '#6d9435',
+          outerPetal: '#c93b6b',
+          innerPetal: '#ff8fb1',
+          centerFlower: '#ffe380'
+        }
+      };
+      const pal = palettes[state.krathongStyle] || palettes.lotus;
+
+      // Banana trunk base (ฐานกระทง)
+      ctx.fillStyle = pal.baseSide;
+      ctx.beginPath();
+      ctx.ellipse(0, 10, 56, 15, 0, 0, Math.PI);
+      ctx.lineTo(-56, 2);
+      ctx.ellipse(0, 2, 56, 15, 0, Math.PI, 0, true);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = pal.baseTop;
+      ctx.beginPath();
+      ctx.ellipse(0, 2, 56, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Outer Lotus Petals (กลีบกระทงชั้นนอก)
+      const outerCount = 12;
+      for (let i = 0; i < outerCount; i++) {
+        const angle = (i / outerCount) * Math.PI * 2;
+        const px = Math.cos(angle) * 44;
+        const py = Math.sin(angle) * 11;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(angle + Math.PI / 2);
+        ctx.fillStyle = pal.outerPetal;
+        ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, -18);
+        ctx.quadraticCurveTo(11, -4, 7, 8);
+        ctx.lineTo(-7, 8);
+        ctx.quadraticCurveTo(-11, -4, 0, -18);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Inner Petals (กลีบชั้นใน)
+      const innerCount = 9;
+      for (let i = 0; i < innerCount; i++) {
+        const angle = (i / innerCount) * Math.PI * 2 + 0.2;
+        const px = Math.cos(angle) * 28;
+        const py = Math.sin(angle) * 7;
+        ctx.save();
+        ctx.translate(px, py - 2);
+        ctx.rotate(angle + Math.PI / 2);
+        ctx.fillStyle = pal.innerPetal;
+        ctx.beginPath();
+        ctx.moveTo(0, -15);
+        ctx.quadraticCurveTo(9, -3, 6, 6);
+        ctx.lineTo(-6, 6);
+        ctx.quadraticCurveTo(-9, -3, 0, -15);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Yellow Marigold / Flowers center
+      ctx.fillStyle = pal.centerFlower;
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * 14, Math.sin(a) * 4 - 4, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 3 Incense sticks (ธูป 3 ดอก)
+      ctx.strokeStyle = '#7c4d2b';
+      ctx.lineWidth = 2;
+      [-7, 0, 7].forEach((offsetX, idx) => {
+        ctx.beginPath();
+        ctx.moveTo(offsetX * 0.5, -6);
+        ctx.lineTo(offsetX * 1.4, -38 - (idx % 2) * 3);
+        ctx.stroke();
+
+        // Glowing incense tip when lit
+        if (state.flameIntensity > 0.2) {
+          ctx.fillStyle = '#ff6b35';
+          ctx.beginPath();
+          ctx.arc(offsetX * 1.4, -38 - (idx % 2) * 3, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // Candle (เทียน)
+      ctx.fillStyle = '#ffe57f';
+      ctx.beginPath();
+      ctx.roundRect(-4.5, -34, 9, 28, 3);
+      ctx.fill();
+
+      // Candle wick
+      ctx.strokeStyle = '#2b1d0e';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -34);
+      ctx.lineTo(0, -39);
+      ctx.stroke();
+
+      // Animated Candle Flame
+      if (state.flameIntensity > 0.01) {
+        const flickerX = Math.sin(time * 0.022) * 1.8;
+        const flickerY = Math.cos(time * 0.03) * 1.5;
+        const fScale = state.flameIntensity;
+
+        ctx.save();
+        ctx.translate(0, -40);
+        ctx.scale(fScale, fScale);
+
+        // Outer orange flame
+        ctx.fillStyle = 'rgba(255, 165, 30, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(0, 2);
+        ctx.quadraticCurveTo(9, -6, flickerX, -22 + flickerY);
+        ctx.quadraticCurveTo(-9, -6, 0, 2);
+        ctx.fill();
+
+        // Inner bright white-yellow core
+        ctx.fillStyle = '#fffbe0';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(4.5, -4, flickerX * 0.6, -13 + flickerY * 0.6);
+        ctx.quadraticCurveTo(-4.5, -4, 0, 0);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      ctx.restore();
+
+      // Floating golden sparkles
+      for (let i = sparkles.length - 1; i >= 0; i--) {
+        const sp = sparkles[i];
+        sp.x += sp.vx;
+        sp.y += sp.vy;
+        sp.alpha -= 0.018;
+        if (sp.alpha <= 0) {
+          sparkles.splice(i, 1);
+          continue;
+        }
+        ctx.fillStyle = `rgba(255, 232, 140, ${sp.alpha})`;
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function spawnSparkles(cx, cy, count = 18) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.5 + Math.random() * 2.2;
+        sparkles.push({
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 0.8,
+          r: 1.5 + Math.random() * 2.2,
+          alpha: 1
+        });
+      }
+    }
+
+    // ==========================================
+    // 5. MAIN ANIMATION LOOP
+    // ==========================================
+    function render(time) {
+      ctx.clearRect(0, 0, width, height);
+
+      // Update flame intensity smoothly
+      if (state.step === 'lit' || state.step === 'floating' || state.step === 'released') {
+        state.flameIntensity = Math.min(1, state.flameIntensity + 0.045);
+      } else {
+        state.flameIntensity = Math.max(0, state.flameIntensity - 0.05);
+      }
+
+      // Update floating trajectory
+      if (state.step === 'floating') {
+        state.floatProgress += 0.0045;
+        if (Math.random() < 0.12) {
+          const pos = getKrathongPosition();
+          ripples.push({ x: pos.x, y: pos.y + 8 * pos.scale, r: 6, alpha: 0.55 });
+        }
+        if (state.floatProgress >= 0.45 && !loveCardOverlay.classList.contains('visible')) {
+          loveCardOverlay.classList.add('visible');
+        }
+        if (state.floatProgress >= 1) {
+          state.floatProgress = 1;
+          state.step = 'released';
+        }
+      }
+
+      drawSkyAndMoon(time);
+      drawOppositeBank(time);
+      drawRiverAndReflections(time);
+      drawWoodenPier();
+      drawHeroKrathong(time);
+
+      requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+
+    // ==========================================
+    // 6. INTERACTION HANDLERS
+    // ==========================================
+    function lightCandle() {
+      if (state.step !== 'unlit') return;
+      state.step = 'lit';
+      const pos = getKrathongPosition();
+      spawnSparkles(pos.x, pos.y - 40, 26);
+
+      mainActionBtn.classList.add('lit-mode');
+      btnIcon.textContent = '🪷';
+      btnLabel.textContent = 'ปล่อยกระทงลงสู่สายน้ำ';
+      hintText.textContent = 'กดปุ่ม หรือปัดกระทงขึ้นเพื่อปล่อยลงแม่น้ำ';
+
+      // Auto-start gentle audio on first user interaction if desired
+      if (!state.audioPlaying) {
+        state.audioPlaying = true;
+        document.getElementById('iconSoundOn').style.display = 'block';
+        document.getElementById('iconSoundOff').style.display = 'none';
+        startAmbientMusic();
+      }
+    }
+
+    function releaseKrathong() {
+      if (state.step !== 'lit') return;
+      state.step = 'floating';
+      state.dragOffsetY = 0;
+      const pos = getKrathongPosition();
+      spawnSparkles(pos.x, pos.y, 24);
+      actionContainer.style.opacity = '0';
+      actionContainer.style.pointerEvents = 'none';
+    }
+
+    mainActionBtn.addEventListener('click', () => {
+      if (state.step === 'unlit') {
+        lightCandle();
+      } else if (state.step === 'lit') {
+        releaseKrathong();
+      }
+    });
+
+    // Canvas Tap / Swipe Interaction on Krathong & Water
+    canvas.addEventListener('pointerdown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const kPos = getKrathongPosition();
+      const dist = Math.hypot(px - kPos.x, py - (kPos.y - 15));
+
+      if (dist < 85) {
+        if (state.step === 'unlit') {
+          lightCandle();
+        } else if (state.step === 'lit') {
+          state.isDragging = true;
+          state.dragStartY = py;
+        }
+      } else if (py > height * 0.48) {
+        // Ripple effect when tapping water
+        ripples.push({ x: px, y: py, r: 4, alpha: 0.65 });
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!state.isDragging || state.step !== 'lit') return;
+      const rect = canvas.getBoundingClientRect();
+      const py = e.clientY - rect.top;
+      const deltaY = py - state.dragStartY;
+      state.dragOffsetY = Math.max(-70, Math.min(10, deltaY));
+      if (state.dragOffsetY < -42) {
+        state.isDragging = false;
+        releaseKrathong();
+      }
+    });
+
+    window.addEventListener('pointerup', () => {
+      if (state.isDragging) {
+        state.isDragging = false;
+        state.dragOffsetY = 0;
+      }
+    });
+
+    // Replay button
+    document.getElementById('replayBtn').addEventListener('click', () => {
+      state.step = 'unlit';
+      state.floatProgress = 0;
+      state.dragOffsetY = 0;
+      loveCardOverlay.classList.remove('visible');
+      actionContainer.style.opacity = '1';
+      actionContainer.style.pointerEvents = 'auto';
+      mainActionBtn.classList.remove('lit-mode');
+      btnIcon.textContent = '🕯️';
+      btnLabel.textContent = 'แตะเทียนให้ความรักสว่างขึ้น';
+      hintText.textContent = 'แตะที่เทียนบนกระทง หรือกดปุ่มด้านบนเพื่อจุดเทียน';
+    });
+
+    // Share link generator
+    document.getElementById('shareLinkBtn').addEventListener('click', () => {
+      const params = new URLSearchParams({
+        to: state.to,
+        msg: state.msg,
+        from: state.from,
+        style: state.krathongStyle
+      });
+      const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+      navigator.clipboard?.writeText(shareUrl).catch(() => {});
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2600);
+    });
+
+    // Customize Modal Controls
+    document.getElementById('openWishBtn').addEventListener('click', () => {
+      wishModal.classList.add('open');
+    });
+
+    document.getElementById('closeModalBtn').addEventListener('click', () => {
+      wishModal.classList.remove('open');
+    });
+
+    document.querySelectorAll('.k-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('.k-option').forEach(el => el.classList.remove('active'));
+        opt.classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.getElementById('inputMsg').value = chip.dataset.preset;
+      });
+    });
+
+    document.getElementById('saveWishBtn').addEventListener('click', () => {
+      const selectedStyle = document.querySelector('.k-option.active')?.dataset.style || 'lotus';
+      state.krathongStyle = selectedStyle;
+      state.to = document.getElementById('inputTo').value.trim() || 'คนพิเศษของฉัน';
+      state.msg = document.getElementById('inputMsg').value.trim() || state.msg;
+      state.from = document.getElementById('inputFrom').value.trim() || 'จากคนที่คิดถึงเสมอ 💛';
+      syncTextUI();
+      wishModal.classList.remove('open');
+    });
+  </script>
+</body>
+</html>
